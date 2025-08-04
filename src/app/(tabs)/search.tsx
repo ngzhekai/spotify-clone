@@ -14,7 +14,7 @@ export default function Tab() {
       <Button
         title={theme === 'light' ? '🌙 Dark' : '☀️ Light'}
         onPress={toggleTheme}
-        color={themeColors.background}
+        color={themeColors.accentButton}
       />
     </View>
   );
