@@ -1,7 +1,9 @@
 <div align="center">
   <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://assets.vercel.com/image/upload/v1662130559/nextjs/Icon_dark_background.png">
     <img alt="Spotify Clone logo" src="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green-300x300.png" height="128"/>
   </picture>
+  <h1>Spotify Clone</h1>
 </div>
 
 ## Getting Started
