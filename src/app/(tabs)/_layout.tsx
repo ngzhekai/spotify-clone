@@ -1,14 +1,33 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Animated as RNAnimated,
+  Dimensions,
+} from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useSelectedButton } from '../../context/SelectedButtonContext';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NowPlayingItem } from '../../types/DataItem';
 import { getImageSource } from '../../utils/image';
-import { useRef, ReactNode } from 'react';
+import { useRef, ReactNode, useState } from 'react';
 import * as Haptics from 'expo-haptics';
+import { usePlayerModal } from '../../context/PlayerModalContext';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  withSpring,
+  runOnJS,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolate,
+  Extrapolation,
+  useAnimatedReaction,
+} from 'react-native-reanimated';
 
 // import { getColors } from 'react-native-image-colors';
 
@@ -61,9 +80,48 @@ const SharedHeader = ({ children }: { children?: ReactNode }) => {
   );
 };
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const MODAL_HEIGHT = SCREEN_HEIGHT;
+
 export default function TabsLayout() {
   const { themeColors } = useTheme();
+  const { modalTranslateY, openPlayerModal, ensureModalMounted, isPlayerModalVisible } =
+    usePlayerModal();
 
+  // Drag context for the modal; we drive modalTranslateY directly for perfect sync
+  const modalDragContextY = useSharedValue(0);
+
+  // Keep overlay always interactive; modal overlay above will capture when visible
+
+  // Pan gesture: drag on the mini player bar directly drives the modal's translateY
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      modalDragContextY.value = modalTranslateY.value;
+      // Ensure the modal overlay is mounted so it can follow the drag even before threshold
+      runOnJS(ensureModalMounted)();
+    })
+    .onUpdate((event) => {
+      // Drive modal top edge to the finger's Y position for perfect sync
+      const y = Math.max(0, Math.min(event.absoluteY, MODAL_HEIGHT));
+      modalTranslateY.value = y;
+    })
+    .onEnd((event) => {
+      const progress = 1 - modalTranslateY.value / MODAL_HEIGHT; // 0 closed, 1 fully open
+      const shouldOpen =
+        event.translationY < -40 || // small upward drag
+        event.velocityY < -400 || // fling up
+        progress > 0.35; // if at least 35% revealed, complete opening
+
+      if (shouldOpen) {
+        runOnJS(openPlayerModal)();
+      } else {
+        // Return modal to closed if not enough
+        modalTranslateY.value = withSpring(MODAL_HEIGHT, {
+          damping: 20,
+          stiffness: 300,
+        });
+      }
+    });
   // const allFadeAnim = useRef(new Animated.Value(1)).current;
 
   /*           
@@ -122,9 +180,9 @@ export default function TabsLayout() {
   // Animated values for each button
   const colorAnims = useRef(
     headerButtons.reduce((acc, btn) => {
-      acc[btn.key] = new Animated.Value(btn.key === 'All' ? 1 : 0);
+      acc[btn.key] = new RNAnimated.Value(btn.key === 'All' ? 1 : 0);
       return acc;
-    }, {} as Record<string, Animated.Value>)
+    }, {} as Record<string, RNAnimated.Value>)
   ).current;
 
   // Interpolated colors for each button
@@ -151,7 +209,7 @@ export default function TabsLayout() {
     if (selectedButton !== button) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       headerButtons.forEach(({ key }) => {
-        Animated.timing(colorAnims[key], {
+        RNAnimated.timing(colorAnims[key], {
           toValue: key === button ? 1 : 0,
           duration: 150,
           useNativeDriver: false,
@@ -160,6 +218,9 @@ export default function TabsLayout() {
       setSelectedButton(button);
     }
   };
+
+  // Overlay moved to root; no animated style needed here
+  const containerAnimatedStyle = useAnimatedStyle(() => ({ }));
 
   return (
     <View style={styles.mainContainer}>
@@ -218,21 +279,21 @@ export default function TabsLayout() {
                           key={key}
                           onPress={() => handleButtonPress(key)}
                         >
-                          <Animated.View
+                          <RNAnimated.View
                             style={[
                               styles.headerButton,
                               { backgroundColor: color },
                             ]}
                           >
-                            <Animated.Text
+                            <RNAnimated.Text
                               style={[
                                 styles.headerButtonText,
                                 { color: textColor },
                               ]}
                             >
                               {label}
-                            </Animated.Text>
-                          </Animated.View>
+                            </RNAnimated.Text>
+                          </RNAnimated.View>
                         </Pressable>
                       );
                     })}
@@ -295,71 +356,7 @@ export default function TabsLayout() {
         </Tabs>
       </View>
 
-      {/* Player Bar Overlay */}
-      <View style={styles.playerBarOverlay}>
-        {/* 
-            Bug: Cannot find native module 'ImageColors' for react-native-image-colors on ios
-            Will have to use static colors for now
-             */}
-        {/* <View
-            style={[
-              styles.playerBar,
-              { backgroundColor: colors.colorFour.value },
-            ]}
-          > */}
-        <View style={[styles.playerBar, { backgroundColor: '#282828' }]}>
-          <View style={styles.playerBarImageContainer}>
-            <Image
-              source={getImageSource(nowPlayingData.image)}
-              style={styles.playerBarImage}
-            />
-          </View>
-          <View style={styles.trackInfo}>
-            <View style={styles.trackInfoTextContainer}>
-              <Text
-                style={[
-                  styles.trackNameText,
-                  { color: themeColors.primaryText },
-                ]}
-              >
-                {nowPlayingData.trackName}
-              </Text>
-              <Text
-                style={[
-                  styles.trackInfoSeparator,
-                  { color: themeColors.primaryText },
-                ]}
-              >
-                &bull;
-              </Text>
-              <Text
-                style={[
-                  styles.artistText,
-                  { color: themeColors.secondaryText },
-                ]}
-              >
-                {nowPlayingData.artists.join(', ')}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.outputDeviceText,
-                { color: themeColors.accentText },
-              ]}
-            >
-              {nowPlayingData.outputDevice}
-            </Text>
-          </View>
-          <View style={styles.playerBarControls}>
-            <Ionicons
-              name="headset-outline"
-              size={26}
-              color={themeColors.accentText}
-            />
-            <Ionicons name="pause" color={themeColors.primaryText} size={26} />
-          </View>
-        </View>
-      </View>
+      {/* Player Bar Overlay moved to root layout to ensure it stacks above modal */}
     </View>
   );
 }
@@ -376,7 +373,8 @@ const styles = StyleSheet.create({
     bottom: 95,
     left: 0,
     right: 0,
-    // zIndex: 10,
+    zIndex: 1000,
+    elevation: 1000,
   },
   playerBar: {
     display: 'flex',

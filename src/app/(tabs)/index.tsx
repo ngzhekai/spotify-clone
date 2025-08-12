@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView} from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useSelectedButton } from '../../context/SelectedButtonContext';
 // import RecentlyPlayedList from '../../components/RecentlyPlayedList';
