@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../context/ThemeContext';
-import { Feather } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../context/ThemeContext";
+import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+} from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -16,13 +16,14 @@ import Animated, {
   useSharedValue,
   useAnimatedReaction,
   Extrapolation,
-} from 'react-native-reanimated';
-import { usePlayerModal } from '../context/PlayerModalContext';
-import { Image } from 'expo-image';
-import { getImageSource } from '../utils/image';
-import { nowPlayingData } from '../data/nowPlayingData';
+} from "react-native-reanimated";
+import { usePlayerModal } from "../context/PlayerModalContext";
+import { Image } from "expo-image";
+import { getImageSource } from "../utils/image";
+import { nowPlayingData } from "../data/nowPlayingData";
+import { Repeat2, Shuffle } from "lucide-react-native";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const MODAL_HEIGHT = SCREEN_HEIGHT;
 
 export default function CustomPlayerModal() {
@@ -101,7 +102,7 @@ export default function CustomPlayerModal() {
   return (
     <GestureHandlerRootView
       style={StyleSheet.absoluteFill}
-      pointerEvents={pointerEnabled ? 'auto' : 'none'}
+      pointerEvents={pointerEnabled ? "auto" : "none"}
     >
       {/* Modal Content */}
       <GestureDetector gesture={panGesture}>
@@ -112,7 +113,7 @@ export default function CustomPlayerModal() {
               {
                 paddingTop: insets.top,
                 paddingBottom: insets.bottom,
-                backgroundColor: '#282828',
+                backgroundColor: "#282828",
               },
             ]}
           >
@@ -145,10 +146,54 @@ export default function CustomPlayerModal() {
               />
             </View>
 
-            <Text style={{ color: themeColors.primaryText }}>
-              Player Component
-            </Text>
-            {/* Add player controls and UI elements here */}
+            <View style={styles.bottomContainer}>
+              <View style={styles.trackInfoContainer}>
+                <View>
+                  <Text
+                    style={[
+                      styles.trackNameText,
+                      { color: themeColors.primaryText },
+                    ]}
+                  >
+                    {nowPlayingData.trackName}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.artistsNameText,
+                      { color: themeColors.secondaryText },
+                    ]}
+                  >
+                    {nowPlayingData.artists.join(", ")}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="add-circle-outline"
+                  size={28}
+                  color={themeColors.secondaryText}
+                />
+              </View>
+              <View style={styles.playerControls}>
+                <Shuffle size={25} color={themeColors.primaryText} />
+                <Ionicons
+                  name="play-skip-back"
+                  size={30}
+                  color={themeColors.primaryText}
+                />
+                <Ionicons
+                  name={
+                    nowPlayingData.isPlaying ? "pause-circle" : "play-circle"
+                  }
+                  size={80}
+                  color={themeColors.primaryText}
+                />
+                <Ionicons
+                  name="play-skip-forward"
+                  size={30}
+                  color={themeColors.primaryText}
+                />
+                <Repeat2 size={25} color={themeColors.primaryText} />
+              </View>
+            </View>
           </View>
         </Animated.View>
       </GestureDetector>
@@ -159,13 +204,13 @@ export default function CustomPlayerModal() {
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   backdropPressable: {
     flex: 1,
   },
   modalContainer: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     height: MODAL_HEIGHT,
@@ -179,20 +224,41 @@ const styles = StyleSheet.create({
     rowGap: 60,
   },
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 10,
   },
   playlistName: {
-    fontWeight: 'bold',
-    fontSize: 12
+    fontWeight: "bold",
+    fontSize: 12,
   },
-  playerImageContainer: { width: '100%', alignItems: 'center' },
-
+  playerImageContainer: { width: "100%", alignItems: "center" },
   playerImage: {
     width: 340,
     height: 340,
     borderRadius: 8,
+  },
+  bottomContainer: {
+    flexDirection: "column",
+    rowGap: 20,
+  },
+  trackInfoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: 'center'
+  },
+  trackNameText: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  artistsNameText: {
+    fontSize: 14,
+  },
+  playerControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
   },
 });

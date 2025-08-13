@@ -23,4 +23,5 @@ export interface NowPlayingItem {
   artists: string[];
   image: string;
   outputDevice: string;
+  isPlaying: boolean;
 }

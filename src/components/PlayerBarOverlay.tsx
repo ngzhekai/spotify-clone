@@ -141,7 +141,7 @@ export default function PlayerBarOverlay() {
               size={26}
               color={themeColors.accentText}
             />
-            <Ionicons name="pause" color={themeColors.primaryText} size={26} />
+            <Ionicons name={nowPlayingData.isPlaying ? "pause" : "play"} color={themeColors.primaryText} size={26} />
           </View>
         </View>
       </GestureDetector>
