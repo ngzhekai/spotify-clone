@@ -29,8 +29,7 @@ import { Image } from "expo-image";
 import { getImageSource } from "../utils/image";
 import { nowPlayingData } from "../data/nowPlayingData";
 import { Repeat2, Shuffle } from "lucide-react-native";
-import { LinearProgress } from "@expo/ui/swift-ui";
-
+import LinearProgress from "./ui/progress";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const MODAL_HEIGHT = SCREEN_HEIGHT;
 
@@ -107,6 +106,11 @@ export default function CustomPlayerModal() {
     closePlayerModal();
   }, [closePlayerModal]);
 
+  const progressProps: LinearProgressProps = {
+    value: 0.8,
+    color: themeColors.primaryText,
+    style: { height: 4, width: "100%" },
+  };
   return (
     <GestureHandlerRootView
       style={StyleSheet.absoluteFill}
@@ -180,13 +184,7 @@ export default function CustomPlayerModal() {
                   color={themeColors.secondaryText}
                 />
               </View>
-              {Platform.OS === "ios" && (
-                <LinearProgress
-                  progress={0.5}
-                  style={{ width: 300 }}
-                  color="red"
-                />
-              )}
+              <LinearProgress />
               <View style={styles.playerControls}>
                 <Shuffle size={25} color={themeColors.primaryText} />
                 <Ionicons
