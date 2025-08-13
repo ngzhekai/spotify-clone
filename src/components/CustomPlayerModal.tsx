@@ -1,8 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+  Platform,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
-import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import {
   Gesture,
   GestureDetector,
@@ -22,6 +29,7 @@ import { Image } from "expo-image";
 import { getImageSource } from "../utils/image";
 import { nowPlayingData } from "../data/nowPlayingData";
 import { Repeat2, Shuffle } from "lucide-react-native";
+import { LinearProgress } from "@expo/ui/swift-ui";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const MODAL_HEIGHT = SCREEN_HEIGHT;
@@ -172,6 +180,13 @@ export default function CustomPlayerModal() {
                   color={themeColors.secondaryText}
                 />
               </View>
+              {Platform.OS === "ios" && (
+                <LinearProgress
+                  progress={0.5}
+                  style={{ width: 300 }}
+                  color="red"
+                />
+              )}
               <View style={styles.playerControls}>
                 <Shuffle size={25} color={themeColors.primaryText} />
                 <Ionicons
@@ -246,7 +261,7 @@ const styles = StyleSheet.create({
   trackInfoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: 'center'
+    alignItems: "center",
   },
   trackNameText: {
     fontSize: 22,
