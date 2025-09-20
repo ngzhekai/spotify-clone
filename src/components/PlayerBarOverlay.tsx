@@ -14,7 +14,7 @@ import Animated, {
 import { useTheme } from '../context/ThemeContext';
 import { usePlayerModal } from '../context/PlayerModalContext';
 import { getImageSource } from '../utils/image';
-import { nowPlayingData } from '../data/nowPlayingData';
+import { usePlayer } from '../context/PlayerContext';
 import { Dimensions } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -24,6 +24,7 @@ export default function PlayerBarOverlay() {
   const { themeColors } = useTheme();
   const { modalTranslateY, openPlayerModal, ensureModalMounted } =
     usePlayerModal();
+  const { current, isPlaying, togglePlay } = usePlayer();
 
   const [overlayInteractive, setOverlayInteractive] = useState(true);
 
@@ -75,6 +76,20 @@ export default function PlayerBarOverlay() {
       }
     });
 
+  // Tap gesture for the play/pause control
+  const playTapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(togglePlay)();
+  });
+
+  // Separate tap gesture for opening the modal, which should fail if playTap recognizes
+  const openTapGesture = Gesture.Tap()
+    .maxDuration(300)
+    .hitSlop(12)
+    .requireExternalGestureToFail(playTapGesture)
+    .onEnd(() => {
+      runOnJS(openPlayerModal)();
+    });
+
   return (
     <Animated.View
       style={[styles.playerBarOverlay, containerAnimatedStyle]}
@@ -82,22 +97,11 @@ export default function PlayerBarOverlay() {
       collapsable={false}
     >
       <GestureDetector
-        gesture={Gesture.Race(
-          Gesture.Tap()
-            .maxDuration(300)
-            .hitSlop(12)
-            .onEnd(() => {
-              runOnJS(openPlayerModal)();
-            }),
-          panGesture.activeOffsetY([-3, 3])
-        )}
+        gesture={Gesture.Race(openTapGesture, panGesture.activeOffsetY([-3, 3]))}
       >
         <View style={[styles.playerBar, { backgroundColor: '#282828' }]}>
           <View style={styles.playerBarImageContainer}>
-            <Image
-              source={getImageSource(nowPlayingData.image)}
-              style={styles.playerBarImage}
-            />
+            <Image source={getImageSource(current.image)} style={styles.playerBarImage} />
           </View>
           <View style={styles.trackInfo}>
             <View style={styles.trackInfoTextContainer}>
@@ -107,7 +111,7 @@ export default function PlayerBarOverlay() {
                   { color: themeColors.primaryText },
                 ]}
               >
-                {nowPlayingData.trackName}
+                {current.trackName}
               </Text>
               <Text
                 style={[
@@ -123,7 +127,7 @@ export default function PlayerBarOverlay() {
                   { color: themeColors.secondaryText },
                 ]}
               >
-                {nowPlayingData.artists.join(', ')}
+                {current.artists.join(', ')}
               </Text>
             </View>
             <Text
@@ -132,7 +136,7 @@ export default function PlayerBarOverlay() {
                 { color: themeColors.accentText },
               ]}
             >
-              {nowPlayingData.outputDevice}
+              {current.outputDevice}
             </Text>
           </View>
           <View style={styles.playerBarControls}>
@@ -141,7 +145,15 @@ export default function PlayerBarOverlay() {
               size={26}
               color={themeColors.accentText}
             />
-            <Ionicons name={nowPlayingData.isPlaying ? "pause" : "play"} color={themeColors.primaryText} size={26} />
+            <GestureDetector gesture={playTapGesture}>
+              <View>
+                <Ionicons
+                  name={isPlaying ? 'pause' : 'play'}
+                  color={themeColors.primaryText}
+                  size={26}
+                />
+              </View>
+            </GestureDetector>
           </View>
         </View>
       </GestureDetector>

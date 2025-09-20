@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SelectedButtonProvider } from '../context/SelectedButtonContext';
 import { PlayerModalProvider } from '../context/PlayerModalContext';
+import { PlayerProvider } from '../context/PlayerContext';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import CustomPlayerModal from '../components/CustomPlayerModal';
 import PlayerBarOverlay from '../components/PlayerBarOverlay';
@@ -13,9 +14,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <SelectedButtonProvider>
-        <PlayerModalProvider>
-          <RootLayoutContent />
-        </PlayerModalProvider>
+        <PlayerProvider>
+          <PlayerModalProvider>
+            <RootLayoutContent />
+          </PlayerModalProvider>
+        </PlayerProvider>
       </SelectedButtonProvider>
     </ThemeProvider>
   );
@@ -23,7 +26,7 @@ export default function RootLayout() {
 
 function RootLayoutContent() {
   const { theme, themeColors } = useTheme();
-  
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

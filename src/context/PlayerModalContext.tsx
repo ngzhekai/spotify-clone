@@ -26,8 +26,11 @@ export function PlayerModalProvider({ children }: { children: ReactNode }) {
     // Ensure visible so backdrop/touches are enabled
     setIsPlayerModalVisible(true);
     modalTranslateY.value = withSpring(0, {
-      damping: 40,
-      stiffness: 200,
+      // old setup
+      // damping: 40,
+      // stiffness: 200,
+      damping: 60,
+      stiffness: 300,
     });
   };
 
@@ -35,8 +38,11 @@ export function PlayerModalProvider({ children }: { children: ReactNode }) {
     modalTranslateY.value = withSpring(
       SCREEN_HEIGHT,
       {
-        damping: 20,
+        damping: 30,
         stiffness: 90,
+        // old setup
+        // stiffness: 90,
+        // damping: 20,
       },
       () => {
         runOnJS(setIsPlayerModalVisible)(false);

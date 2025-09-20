@@ -12,34 +12,15 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSelectedButton } from '../../context/SelectedButtonContext';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { NowPlayingItem } from '../../types/DataItem';
 import { getImageSource } from '../../utils/image';
-import { useRef, ReactNode, useState } from 'react';
+import { useRef, ReactNode } from 'react';
 import * as Haptics from 'expo-haptics';
 import { usePlayerModal } from '../../context/PlayerModalContext';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  withSpring,
-  runOnJS,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolate,
-  Extrapolation,
-  useAnimatedReaction,
-} from 'react-native-reanimated';
+import { Gesture } from 'react-native-gesture-handler';
+import { useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // import { getColors } from 'react-native-image-colors';
-
-const nowPlayingData: NowPlayingItem = {
-  id: '1',
-  trackName: 'Thunder',
-  artists: ['Imagine Dragons'],
-  outputDevice: "Gilbert's AirPods",
-  image: 'https://i.scdn.co/image/ab67616d00001e025a43918ea90bf1e44b7bdcfd',
-  //   image: 'https://i.scdn.co/image/ab67616d00001e025675e83f707f1d7271e5cf8a',
-  //   image: 'https://i.scdn.co/image/ab67616d00001e026224d1236b0e0a0e1586efbb',
-};
 
 const profileData = {
   image: 'https://i.scdn.co/image/ab6775700000ee859b14428e97a956c276470156',
@@ -58,25 +39,30 @@ const SharedHeader = ({ children }: { children?: ReactNode }) => {
   const { themeColors } = useTheme();
 
   return (
-    <View
-      style={[
-        styles.headerContainer,
-        {
-          backgroundColor: themeColors.background,
-        },
-      ]}
+    <SafeAreaView
+      edges={['top']}
+      style={{ backgroundColor: themeColors.background }}
     >
-      <Image
-        source={getImageSource(profileData.image)}
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 20,
-          overflow: 'hidden',
-        }}
-      />
-      {children}
-    </View>
+      <View
+        style={[
+          styles.headerContainer,
+          {
+            backgroundColor: themeColors.background,
+          },
+        ]}
+      >
+        <Image
+          source={getImageSource(profileData.image)}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 20,
+            overflow: 'hidden',
+          }}
+        />
+        {children}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -85,8 +71,12 @@ const MODAL_HEIGHT = SCREEN_HEIGHT;
 
 export default function TabsLayout() {
   const { themeColors } = useTheme();
-  const { modalTranslateY, openPlayerModal, ensureModalMounted, isPlayerModalVisible } =
-    usePlayerModal();
+  const {
+    modalTranslateY,
+    openPlayerModal,
+    ensureModalMounted,
+    isPlayerModalVisible,
+  } = usePlayerModal();
 
   // Drag context for the modal; we drive modalTranslateY directly for perfect sync
   const modalDragContextY = useSharedValue(0);
@@ -218,9 +208,6 @@ export default function TabsLayout() {
       setSelectedButton(button);
     }
   };
-
-  // Overlay moved to root; no animated style needed here
-  const containerAnimatedStyle = useAnimatedStyle(() => ({ }));
 
   return (
     <View style={styles.mainContainer}>
